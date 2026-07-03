@@ -101,7 +101,7 @@ export default function App() {
 
         <footer className="mt-2 text-center">
           <p className="mono text-[0.85rem] tracking-wide text-ink/45">
-            © 2026 Dang Le Quoc Bao
+            © {new Date().getFullYear()} Dang Le Quoc Bao
           </p>
         </footer>
       </main>

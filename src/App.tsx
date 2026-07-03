@@ -98,6 +98,12 @@ export default function App() {
         <p className="no-print mt-3 text-center text-[0.68rem] text-ink/50">
           Dữ liệu được lưu tự động trên trình duyệt của bạn — không cần đăng nhập.
         </p>
+
+        <footer className="mt-2 text-center">
+          <p className="mono text-[0.85rem] tracking-wide text-ink/45">
+            © 2026 Dang Le Quoc Bao
+          </p>
+        </footer>
       </main>
 
       {confirmReset && (

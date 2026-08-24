@@ -67,10 +67,10 @@ export function EntryForm({ kind, initial, onDone }: EntryFormProps) {
 
   const [title, setTitle] = useState(initial?.title ?? '');
   const [amount, setAmount] = useState(initial?.amount ?? 0);
-  const [payerId, setPayerId] = useState(initial?.payerId ?? people[0]?.id ?? '');
+  const [payerId, setPayerId] = useState(initial?.payerId ?? '');
   const [splitMode, setSplitMode] = useState<SplitMode>(initial?.splitMode ?? 'equal');
   const [participantIds, setParticipantIds] = useState<string[]>(
-    initial?.splitMode === 'custom' ? initial.participantIds : allIds,
+    initial?.splitMode === 'custom' ? initial.participantIds : [],
   );
 
   const activeParticipants = splitMode === 'equal' ? allIds : participantIds;

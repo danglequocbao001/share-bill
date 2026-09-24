@@ -1,69 +1,57 @@
-import { Copy, Pencil, Trash2 } from 'lucide-react';
-import type { Expense } from '@/types';
+import { ArrowRightLeft, Gift } from 'lucide-react';
+import type { EntryKind, Expense, ID, Person, SplitMode } from '@/types';
 import { useBillStore } from '@/store/useBillStore';
 import { resolveParticipants } from '@/lib/calc';
 import { formatMoney } from '@/lib/format';
 
-interface EntryRowProps {
-  expense: Expense;
-  onEdit: () => void;
-}
+const DEFAULT_TITLE: Record<EntryKind, string> = {
+  expense: 'Khoản chi',
+  sponsorship: 'Tài trợ',
+  transfer: 'Chuyển tiền',
+};
 
-export function EntryRow({ expense, onEdit }: EntryRowProps) {
+export const entryTitle = (entry: Pick<Expense, 'title' | 'kind'>) =>
+  entry.title || DEFAULT_TITLE[entry.kind];
+
+/** "cả nhóm (4 người)" · "An, Bình, Chi" · "5 người" */
+export const whoText = (splitMode: SplitMode, ids: ID[], people: Person[]): string => {
+  if (splitMode === 'equal') return `cả nhóm (${ids.length} người)`;
+  if (ids.length > 3) return `${ids.length} người`;
+  return ids.map((id) => people.find((p) => p.id === id)?.name ?? '?').join(', ');
+};
+
+export function EntryRow({ expense }: { expense: Expense }) {
   const people = useBillStore((s) => s.people);
-  const removeEntry = useBillStore((s) => s.removeEntry);
-  const duplicateEntry = useBillStore((s) => s.duplicateEntry);
 
-  const payer = people.find((p) => p.id === expense.payerId);
-  const participantCount = resolveParticipants(expense, people).length;
-  const isSponsor = expense.kind === 'sponsorship';
+  const nameOf = (id: ID | undefined) => people.find((p) => p.id === id)?.name ?? 'Người đã xoá';
+  const ids = resolveParticipants(expense, people);
+  const payer = nameOf(expense.payerId);
+  const who = whoText(expense.splitMode, ids, people);
 
-  const splitLabel = isSponsor
-    ? `Giảm cho ${participantCount} người`
-    : expense.splitMode === 'equal'
-      ? `Chia đều · ${participantCount} người`
-      : `Chia theo ${expense.kind === 'prepayment' ? 'người' : 'món'} · ${participantCount} người`;
-  const payerText = payer
-    ? `${payer.name} ${isSponsor ? 'tài trợ' : 'trả'}`
-    : `Người ${isSponsor ? 'tài trợ' : 'trả'} đã bị xóa`;
+  const meta =
+    expense.kind === 'transfer'
+      ? `${payer} → ${nameOf(ids[0])}`
+      : expense.kind === 'sponsorship'
+        ? `${payer} tài trợ · giảm cho ${who}`
+        : `${payer} trả · chia đều ${expense.splitMode === 'custom' ? 'cho ' : ''}${who}`;
+  const tone =
+    expense.kind === 'sponsorship' ? 'text-positive' : expense.kind === 'transfer' ? 'text-muted' : '';
+  const Icon = expense.kind === 'sponsorship' ? Gift : expense.kind === 'transfer' ? ArrowRightLeft : null;
 
   return (
-    <div className="animate-rise group flex flex-col gap-0.5 py-1.5">
+    <div className="flex flex-col gap-0.5">
       <div className="leader">
-        <span className="min-w-0 flex-shrink truncate font-medium">{expense.title}</span>
+        <span className="flex min-w-0 flex-shrink items-center gap-1.5 font-medium">
+          {Icon && <Icon size={14} className={`shrink-0 ${tone}`} />}
+          <span className="truncate">{entryTitle(expense)}</span>
+        </span>
         <span className="leader__dots" />
-        <span className={`mono shrink-0 font-semibold ${isSponsor ? 'text-positive' : ''}`}>
-          {isSponsor ? '−' : ''}
+        <span className={`mono shrink-0 font-semibold ${tone}`}>
+          {expense.kind === 'sponsorship' ? '−' : ''}
           {formatMoney(expense.amount)}
         </span>
       </div>
-
-      <div className="flex items-center justify-between gap-2">
-        <p className="sect-hint min-w-0 truncate">
-          {payerText} · {splitLabel}
-        </p>
-        <div className="no-print flex items-center opacity-60 transition-opacity group-hover:opacity-100">
-          <button type="button" className="icon-btn" onClick={onEdit} aria-label="Sửa">
-            <Pencil size={14} />
-          </button>
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={() => duplicateEntry(expense.id)}
-            aria-label="Nhân đôi"
-          >
-            <Copy size={14} />
-          </button>
-          <button
-            type="button"
-            className="icon-btn icon-btn--danger"
-            onClick={() => removeEntry(expense.id)}
-            aria-label="Xóa"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
-      </div>
+      <p className="sect-hint truncate">{meta}</p>
     </div>
   );
 }

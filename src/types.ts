@@ -9,14 +9,15 @@ export interface Person {
 export type SplitMode = 'equal' | 'custom';
 
 /**
- * `expense` = khoản chi thường
- * `prepayment` = tạm ứng / chi hộ trước (có đòi lại)
- * `sponsorship` = tài trợ / bao (không đòi lại — người tài trợ gánh phần này thay nhóm)
+ * `expense` = khoản chi (kể cả tạm ứng / chi hộ — có đòi lại)
+ * `sponsorship` = tài trợ (không đòi lại — người tài trợ gánh phần này thay nhóm)
+ * `transfer` = chuyển tiền trả nợ: `payerId` chuyển cho `participantIds[0]`
  */
-export type EntryKind = 'expense' | 'prepayment' | 'sponsorship';
+export type EntryKind = 'expense' | 'sponsorship' | 'transfer';
 
 export interface Expense {
   id: ID;
+  /** Có thể để trống — khi hiển thị dùng tên mặc định theo loại. */
   title: string;
   amount: number;
   payerId: ID;

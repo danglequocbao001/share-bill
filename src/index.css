@@ -48,6 +48,19 @@
     color: color-mix(in srgb, var(--color-muted) 75%, transparent);
   }
 
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Khóa cuộn trang phía sau khi đang mở bảng trượt */
+  body:has(dialog[open]) {
+    overflow: hidden;
+  }
+
   /* Ẩn spinner của input number */
   input[type='number']::-webkit-inner-spin-button,
   input[type='number']::-webkit-outer-spin-button {
@@ -140,8 +153,30 @@
       background 0.15s ease;
   }
 
-  .chip:focus-within {
+  .chip:focus-visible,
+  .chip[aria-pressed='true'] {
     border-color: var(--color-ink);
+  }
+
+  .chip[aria-pressed='true'] {
+    background: var(--color-paper);
+  }
+
+  /* Ô tích vuông cho các nút role="checkbox" */
+  .tick {
+    display: grid;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    flex: none;
+    border: 1.5px solid var(--color-sand);
+    border-radius: 0.375rem;
+    color: var(--color-paper);
+  }
+
+  [aria-checked='true'] > .tick {
+    border-color: var(--color-ink);
+    background: var(--color-ink);
   }
 
   .avatar {
@@ -178,8 +213,8 @@
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-ink) 10%, transparent);
   }
 
-  .field--flat {
-    background: var(--color-cream);
+  .field[aria-invalid='true'] {
+    border-color: var(--color-accent);
   }
 
   /* ---------- Nút ---------- */
@@ -304,6 +339,36 @@
     box-shadow: 0 1px 2px rgb(35 34 32 / 0.12);
   }
 
+  /* ---------- Bảng trượt (dialog) ---------- */
+  .sheet {
+    margin: auto auto 0;
+    width: 100%;
+    max-width: 460px;
+    max-height: 90dvh;
+    padding: 0;
+    border: 0;
+    border-radius: 1.25rem 1.25rem 0 0;
+    background: var(--color-paper);
+    color: var(--color-ink);
+    box-shadow: 0 -12px 40px rgb(35 34 32 / 0.25);
+    overscroll-behavior: contain;
+  }
+
+  .sheet[open] {
+    animation: sheet-up 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .sheet::backdrop {
+    background: rgb(35 34 32 / 0.4);
+  }
+
+  @media (min-width: 640px) {
+    .sheet {
+      margin: auto;
+      border-radius: 1.25rem;
+    }
+  }
+
   /* ---------- Mã vạch trang trí ---------- */
   .barcode {
     height: 44px;
@@ -338,6 +403,13 @@
 @layer utilities {
   .animate-rise {
     animation: rise 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes sheet-up {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
   }
 
   @keyframes rise {

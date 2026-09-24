@@ -4,7 +4,6 @@ import { formatDateTime } from '@/lib/format';
 
 export function ReceiptHeader() {
   const title = useBillStore((s) => s.title);
-  const setTitle = useBillStore((s) => s.setTitle);
   const peopleCount = useBillStore((s) => s.people.length);
   const itemCount = useBillStore((s) => s.expenses.length);
 
@@ -22,14 +21,9 @@ export function ReceiptHeader() {
         Phiếu chia tiền
       </div>
 
-      <input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        aria-label="Tên hóa đơn"
-        spellCheck={false}
-        className="mono w-full bg-transparent text-center text-2xl font-bold uppercase tracking-wide text-ink outline-none placeholder:text-sand"
-        placeholder="TÊN HÓA ĐƠN"
-      />
+      <h1 className="mono w-full break-words text-2xl font-bold uppercase tracking-wide text-ink">
+        {title || 'Hóa đơn chung'}
+      </h1>
 
       <div className="mono flex w-full items-center justify-between text-[0.68rem] text-muted">
         <span>No. {meta.no}</span>

@@ -17,7 +17,7 @@ export function SettlementSection() {
 
   if (expenses.length === 0) {
     return (
-      <p className="sect-hint text-center italic">Chưa có khoản chi nào để tính công nợ.</p>
+      <p className="sect-hint text-center italic">Chưa có khoản nào để tính ai trả ai.</p>
     );
   }
 
@@ -34,8 +34,8 @@ export function SettlementSection() {
   return (
     <section className="flex flex-col gap-2">
       <p className="sect-hint text-center">
-        Chỉ cần <span className="font-semibold text-ink">{settlements.length}</span> giao dịch để
-        tất toán:
+        Chỉ cần <span className="font-semibold text-ink">{settlements.length}</span> lần chuyển
+        khoản là xong:
       </p>
 
       <div className="flex flex-col gap-2">
@@ -56,6 +56,10 @@ export function SettlementSection() {
           </div>
         ))}
       </div>
+
+      <p className="sect-hint no-print text-center">
+        Ai chuyển rồi thì bấm “Thêm khoản” → Chuyển tiền để ghi lại.
+      </p>
     </section>
   );
 }

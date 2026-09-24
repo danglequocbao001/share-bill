@@ -1,80 +1,83 @@
-import { useState } from 'react';
-import { Plus } from 'lucide-react';
-import type { EntryKind } from '@/types';
+import type { Expense } from '@/types';
 import { useBillStore } from '@/store/useBillStore';
-import { totalByKind } from '@/lib/calc';
+import { grandTotal, totalByKind } from '@/lib/calc';
 import { formatMoney } from '@/lib/format';
 import { EntryRow } from '@/components/EntryRow';
-import { EntryForm } from '@/components/EntryForm';
 
-interface EntriesSectionProps {
-  kind: EntryKind;
-  addLabel: string;
-  emptyHint: string;
+/** Danh sách mọi khoản (mới nhất ở trên), chạm vào để sửa. */
+export function EntriesSection({ onOpen }: { onOpen: (entry: Expense) => void }) {
+  const hasPeople = useBillStore((s) => s.people.length > 0);
+  const expenses = useBillStore((s) => s.expenses);
+
+  if (!hasPeople) {
+    return (
+      <p className="sect-hint text-center italic">
+        Thêm người tham gia ở trên trước, rồi bấm “Thêm khoản” để ghi.
+      </p>
+    );
+  }
+
+  if (expenses.length === 0) {
+    return (
+      <p className="sect-hint text-center italic">
+        Chưa có khoản nào. Bấm “Thêm khoản” ở cuối màn hình để ghi khoản đầu tiên.
+      </p>
+    );
+  }
+
+  const entries = [...expenses].sort((a, b) => b.createdAt - a.createdAt);
+
+  return (
+    <section className="flex flex-col gap-1">
+      <p className="sect-hint text-center">Mới nhất ở trên · chạm vào một khoản để sửa</p>
+      <div className="flex flex-col divide-y divide-line/60">
+        {entries.map((entry) => (
+          <button
+            key={entry.id}
+            type="button"
+            className="animate-rise -mx-2 rounded-lg px-2 py-2 text-left transition-colors hover:bg-cream"
+            onClick={() => onOpen(entry)}
+          >
+            <EntryRow expense={entry} />
+          </button>
+        ))}
+      </div>
+    </section>
+  );
 }
 
-type Mode = { type: 'idle' } | { type: 'new' } | { type: 'edit'; id: string };
-
-export function EntriesSection({ kind, addLabel, emptyHint }: EntriesSectionProps) {
-  const people = useBillStore((s) => s.people);
+/** Bản chỉ đọc cho tờ hóa đơn: theo thứ tự thời gian, kèm tổng. */
+export function ReceiptItems() {
   const expenses = useBillStore((s) => s.expenses);
-  const [mode, setMode] = useState<Mode>({ type: 'idle' });
 
-  const entries = expenses
-    .filter((e) => e.kind === kind)
-    .sort((a, b) => a.createdAt - b.createdAt);
-  const subtotal = totalByKind(expenses, kind);
-  const noPeople = people.length === 0;
-  const isSponsor = kind === 'sponsorship';
-  const subtotalLabel =
-    kind === 'expense' ? 'Tạm tính' : kind === 'prepayment' ? 'Tổng tạm ứng' : 'Tổng tài trợ';
+  if (expenses.length === 0) {
+    return <p className="sect-hint text-center italic">Chưa có khoản nào.</p>;
+  }
 
-  const close = () => setMode({ type: 'idle' });
+  const entries = [...expenses].sort((a, b) => a.createdAt - b.createdAt);
+  const sponsored = totalByKind(expenses, 'sponsorship');
 
   return (
     <section className="flex flex-col">
-      {entries.length === 0 && mode.type !== 'new' ? (
-        <p className="sect-hint text-center italic">{emptyHint}</p>
-      ) : (
-        <div className="flex flex-col divide-y divide-line/60">
-          {entries.map((entry) =>
-            mode.type === 'edit' && mode.id === entry.id ? (
-              <div key={entry.id} className="py-2">
-                <EntryForm kind={kind} initial={entry} onDone={close} />
-              </div>
-            ) : (
-              <EntryRow key={entry.id} expense={entry} onEdit={() => setMode({ type: 'edit', id: entry.id })} />
-            ),
-          )}
-        </div>
-      )}
-
-      {entries.length > 0 && (
-        <div className="leader mt-2 pt-2 text-muted">
-          <span className="text-xs uppercase tracking-wider">{subtotalLabel}</span>
-          <span className="leader__dots" />
-          <span className={`mono text-sm font-semibold ${isSponsor ? 'text-positive' : 'text-ink'}`}>
-            {isSponsor ? '−' : ''}
-            {formatMoney(subtotal)}
-          </span>
-        </div>
-      )}
-
-      <div className="no-print mt-3">
-        {mode.type === 'new' ? (
-          <EntryForm kind={kind} onDone={close} />
-        ) : (
-          <button
-            type="button"
-            className="btn btn--ghost btn--block border-dashed"
-            onClick={() => setMode({ type: 'new' })}
-            disabled={noPeople}
-          >
-            <Plus size={16} />
-            {noPeople ? 'Thêm người tham gia trước' : addLabel}
-          </button>
-        )}
+      <div className="flex flex-col divide-y divide-line/60">
+        {entries.map((entry) => (
+          <div key={entry.id} className="py-1.5">
+            <EntryRow expense={entry} />
+          </div>
+        ))}
       </div>
+      <div className="leader mt-2 pt-2">
+        <span className="text-xs uppercase tracking-wider text-muted">Tổng chi</span>
+        <span className="leader__dots" />
+        <span className="mono text-sm font-semibold">{formatMoney(grandTotal(expenses))}</span>
+      </div>
+      {sponsored > 0 && (
+        <div className="leader">
+          <span className="text-xs uppercase tracking-wider text-muted">Được tài trợ</span>
+          <span className="leader__dots" />
+          <span className="mono text-sm font-semibold text-positive">−{formatMoney(sponsored)}</span>
+        </div>
+      )}
     </section>
   );
 }

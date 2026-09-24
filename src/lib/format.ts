@@ -12,10 +12,23 @@ export const formatMoney = (value: number): string => vndCurrency.format(Math.ro
 /** 500000 → "500.000" (không có ký hiệu tiền tệ, dùng cho ô nhập liệu) */
 export const formatNumber = (value: number): string => vndNumber.format(Math.round(value));
 
-/** "500.000 ₫" / "500k" → 500000 (chỉ giữ lại chữ số) */
+const UNITS: Record<string, number> = { k: 1_000, tr: 1_000_000 };
+
+/**
+ * Hiểu cách gõ tiền quen thuộc: "1.200.000" · "50k" · "2,5k" · "1tr2" · "1.5tr".
+ * Không có đơn vị thì chỉ giữ chữ số (VND không có số lẻ). Không hiểu được thì trả 0.
+ */
 export const parseAmount = (raw: string): number => {
-  const digits = raw.replace(/\D/g, '');
-  return digits ? Number.parseInt(digits, 10) : 0;
+  const text = raw.toLowerCase().replace(/[\s₫đ]/g, '');
+  const match = /^(\d[\d.,]*)(k|tr)(\d*)$/.exec(text);
+  if (!match) return Number.parseInt(text.replace(/\D/g, ''), 10) || 0;
+
+  const [, head, unit, tail] = match;
+  // Dấu chấm/phẩy đứng trước đúng 3 chữ số là phân cách hàng nghìn ("1.200k"), còn lại là dấu thập phân ("1,5k").
+  const number = head!.replace(/[.,](?=\d{3}(?:[.,]|$))/g, '').replace(',', '.');
+  // "1tr2" = 1,2 triệu: chữ số sau đơn vị là phần thập phân.
+  const value = Number(tail ? `${number}.${tail}` : number) * UNITS[unit!]!;
+  return Number.isFinite(value) ? Math.round(value) : 0;
 };
 
 export const initials = (name: string): string => {

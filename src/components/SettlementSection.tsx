@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ArrowRight, PartyPopper } from 'lucide-react';
+import { ArrowRight, Check, PartyPopper } from 'lucide-react';
 import { useBillStore } from '@/store/useBillStore';
 import { computeBalances, simplifyDebts } from '@/lib/calc';
 import { formatMoney } from '@/lib/format';
@@ -7,13 +7,29 @@ import { formatMoney } from '@/lib/format';
 export function SettlementSection() {
   const people = useBillStore((s) => s.people);
   const expenses = useBillStore((s) => s.expenses);
+  const rounding = useBillStore((s) => s.rounding);
+  const setRounding = useBillStore((s) => s.setRounding);
 
   const settlements = useMemo(
-    () => simplifyDebts(computeBalances(people, expenses)),
-    [people, expenses],
+    () => simplifyDebts(computeBalances(people, expenses), rounding),
+    [people, expenses, rounding],
   );
 
   const nameOf = (id: string) => people.find((p) => p.id === id)?.name ?? '—';
+
+  // Hiện cả lúc đã cân bằng: có khi chính việc làm tròn đã bỏ đi mấy khoản lẻ.
+  const roundingToggle = (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={rounding}
+      className="sect-hint flex items-center gap-2 self-center text-left hover:text-ink"
+      onClick={() => setRounding(!rounding)}
+    >
+      <span className="tick">{rounding && <Check size={13} />}</span>
+      Làm tròn
+    </button>
+  );
 
   if (expenses.length === 0) {
     return (
@@ -27,6 +43,7 @@ export function SettlementSection() {
         <PartyPopper size={22} className="text-positive" />
         <p className="text-sm font-medium text-positive">Mọi người đã cân bằng!</p>
         <p className="sect-hint">Không ai còn nợ ai cả.</p>
+        {roundingToggle}
       </div>
     );
   }
@@ -34,8 +51,7 @@ export function SettlementSection() {
   return (
     <section className="flex flex-col gap-2">
       <p className="sect-hint text-center">
-        Chỉ cần <span className="font-semibold text-ink">{settlements.length}</span> lần chuyển
-        khoản là xong:
+        Cần <span className="font-semibold text-ink">{settlements.length}</span> lần chuyển khoản:
       </p>
 
       <div className="flex flex-col gap-2">
@@ -57,9 +73,10 @@ export function SettlementSection() {
         ))}
       </div>
 
-      <p className="sect-hint no-print text-center">
+      <p className="sect-hint text-center">
         Ai chuyển rồi thì bấm “Thêm khoản” → Chuyển tiền để ghi lại.
       </p>
+      {roundingToggle}
     </section>
   );
 }

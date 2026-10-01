@@ -1,8 +1,18 @@
 import { useMemo } from 'react';
 import { useBillStore } from '@/store/useBillStore';
-import { computeBalances } from '@/lib/calc';
+import { computeBalances, type PersonBalance } from '@/lib/calc';
 import { formatMoney } from '@/lib/format';
 import { Avatar } from '@/components/Avatar';
+
+/** Các phần cộng lại thành số dư của một người — dùng chung cho mục Cân đối và bản in. */
+export const BALANCE_PARTS: [string, (b: PersonBalance) => number][] = [
+  ['Đã trả', (b) => b.paid],
+  ['Phần phải chịu', (b) => -b.share],
+  ['Được tài trợ', (b) => b.sponsoredReceived],
+  ['Tài trợ cho nhóm', (b) => -b.sponsoredGiven],
+  ['Đã chuyển đi', (b) => b.sent],
+  ['Đã nhận lại', (b) => -b.received],
+];
 
 const signed = (value: number) => `${value > 0 ? '+' : '−'} ${formatMoney(Math.abs(value))}`;
 
@@ -25,20 +35,13 @@ export function SummarySection() {
 
   return (
     <section className="flex flex-col">
-      <p className="sect-hint no-print text-center">Chạm vào tên để xem cách tính</p>
+      <p className="sect-hint text-center">Chạm vào tên để xem cách tính</p>
       <div className="flex flex-col divide-y divide-line/60">
         {balances.map((b) => {
           const positive = b.balance > 0.5;
           const negative = b.balance < -0.5;
           const tone = positive ? 'text-positive' : negative ? 'text-accent' : 'text-muted';
-          const lines: [string, number][] = [
-            ['Đã trả', b.paid],
-            ['Phần phải chịu', -b.share],
-            ['Được tài trợ', b.sponsoredReceived],
-            ['Tài trợ cho nhóm', -b.sponsoredGiven],
-            ['Đã chuyển đi', b.sent],
-            ['Đã nhận lại', -b.received],
-          ];
+          const lines = BALANCE_PARTS.map(([label, part]): [string, number] => [label, part(b)]);
 
           return (
             <details key={b.personId} className="py-2">

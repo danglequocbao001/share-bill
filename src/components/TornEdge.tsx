@@ -8,7 +8,7 @@ export function TornEdge({ side }: TornEdgeProps) {
   const points = side === 'top' ? '0,12 8,0 16,12' : '0,0 8,12 16,0';
 
   return (
-    <svg className={`tear tear--${side} no-print`} aria-hidden="true" preserveAspectRatio="none">
+    <svg className={`tear tear--${side}`} aria-hidden="true" preserveAspectRatio="none">
       <defs>
         <pattern id={id} width="16" height="12" patternUnits="userSpaceOnUse">
           <polygon points={points} fill="currentColor" />

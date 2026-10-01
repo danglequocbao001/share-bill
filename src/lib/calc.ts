@@ -75,11 +75,19 @@ export const computeBalances = (people: Person[], expenses: Expense[]): PersonBa
   });
 };
 
+/** Làm tròn tới nghìn đồng: lẻ dưới 200 ₫ thì bỏ, từ 200 ₫ trở lên thì làm tròn lên. */
+export const roundSettlement = (amount: number): number => {
+  const dong = Math.round(amount);
+  const rest = dong % 1000;
+  return dong - rest + (rest < 200 ? 0 : 1000);
+};
+
 /**
  * Rút gọn công nợ: ghép người dư (+) với người thiếu (−) theo kiểu tham lam
  * "lớn gặp lớn" để giảm tối đa số giao dịch cần thực hiện.
+ * `rounding`: làm tròn mỗi lần chuyển bằng `roundSettlement`, tắt thì chỉ làm tròn tới đồng.
  */
-export const simplifyDebts = (balances: PersonBalance[]): Settlement[] => {
+export const simplifyDebts = (balances: PersonBalance[], rounding: boolean): Settlement[] => {
   const creditors = balances
     .filter((b) => b.balance > EPSILON)
     .map((b) => ({ id: b.personId, remaining: b.balance }))
@@ -100,7 +108,11 @@ export const simplifyDebts = (balances: PersonBalance[]): Settlement[] => {
     const amount = Math.min(debtor.remaining, creditor.remaining);
 
     if (amount > EPSILON) {
-      settlements.push({ fromId: debtor.id, toId: creditor.id, amount: Math.round(amount) });
+      settlements.push({
+        fromId: debtor.id,
+        toId: creditor.id,
+        amount: rounding ? roundSettlement(amount) : Math.round(amount),
+      });
     }
 
     debtor.remaining -= amount;

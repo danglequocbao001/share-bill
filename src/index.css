@@ -398,6 +398,68 @@
     transform: rotate(-6deg);
     opacity: 0.9;
   }
+
+  /* ---------- Bảng kê khi in / lưu PDF ---------- */
+  .report {
+    font-size: 10pt;
+    line-height: 1.45;
+  }
+
+  .report h1 {
+    font-size: 18pt;
+    font-weight: 700;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .report h2 {
+    /* Có padding để dấu chồng của chữ hoa (Ầ, Ẩ…) đi theo tiêu đề khi nó bị đẩy sang trang sau. */
+    margin-top: 14pt;
+    padding-top: 4pt;
+    font-size: 10pt;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    break-after: avoid;
+  }
+
+  .report table {
+    width: 100%;
+    margin-top: 6pt;
+    font-size: 9pt;
+  }
+
+  .report th,
+  .report td {
+    padding: 3pt 6pt;
+    border-bottom: 0.5pt solid var(--color-line);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .report th {
+    border-bottom: 1pt solid var(--color-ink);
+    font-weight: 600;
+  }
+
+  .report tr {
+    break-inside: avoid;
+  }
+
+  .report tfoot td {
+    border-top: 1pt solid var(--color-ink);
+    border-bottom: 0;
+    font-weight: 700;
+  }
+
+  .report .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .report td.num {
+    white-space: nowrap;
+  }
 }
 
 @layer utilities {
@@ -424,24 +486,10 @@
   }
 }
 
-/* ---------- In hóa đơn ---------- */
+/* ---------- In: chỉ còn bảng kê (PrintReport) ---------- */
 @media print {
   body {
     background: #fff;
-  }
-
-  .no-print {
-    display: none !important;
-  }
-
-  .receipt-shadow {
-    filter: none;
-  }
-
-  .receipt {
-    --tear: 0px;
-    -webkit-mask: none;
-    mask: none;
   }
 
   @page {

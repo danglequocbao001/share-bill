@@ -30,10 +30,10 @@ export function EntryRow({ expense }: { expense: Expense }) {
 
   const meta =
     expense.kind === 'transfer'
-      ? `${payer} → ${nameOf(ids[0])}`
+      ? `→ ${nameOf(ids[0])}`
       : expense.kind === 'sponsorship'
-        ? `${payer} tài trợ · giảm cho ${who}`
-        : `${payer} trả · chia đều ${expense.splitMode === 'custom' ? 'cho ' : ''}${who}`;
+        ? `tài trợ · giảm cho ${who}`
+        : `trả · chia đều ${expense.splitMode === 'custom' ? 'cho ' : ''}${who}`;
   const tone =
     expense.kind === 'sponsorship' ? 'text-positive' : expense.kind === 'transfer' ? 'text-muted' : '';
   const Icon = expense.kind === 'sponsorship' ? Gift : expense.kind === 'transfer' ? ArrowRightLeft : null;
@@ -51,7 +51,9 @@ export function EntryRow({ expense }: { expense: Expense }) {
           {formatMoney(expense.amount)}
         </span>
       </div>
-      <p className="sect-hint truncate">{meta}</p>
+      <p className="sect-hint truncate">
+        <span className="font-bold text-ink">{payer}</span> {meta}
+      </p>
     </div>
   );
 }

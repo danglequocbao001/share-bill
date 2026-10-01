@@ -6,7 +6,8 @@ Không cần tài khoản, không cần đăng nhập, không cần backend. Gia
 ## ✨ Tính năng
 
 - **Hai tab** — _Khoản chi_ để nhập liệu, _Thanh toán_ là tờ hóa đơn kết quả: Cân đối → Chi tiết → Cần thanh toán. Thẻ tóm tắt trên cùng: tổng chi · cần mấy lần chuyển là xong.
-- **Người tham gia** — thêm / sửa / xóa, không cho trùng tên. Chạm vào tên để sửa hoặc xóa.
+- **Tên hóa đơn** — bấm vào tên ở đầu trang để sửa; để trống thì quay về "Hóa đơn chung".
+- **Người tham gia** — thêm / sửa / xóa, không cho trùng tên, tự viết hoa chữ cái đầu mỗi từ ("minh anh" → "Minh Anh"), luôn xếp theo tên A→Z. Avatar lấy theo tên người Việt: "Bảo" → BẢ, "Quốc Bảo" / "Đặng Lê Quốc Bảo" → QB. Chạm vào tên để sửa hoặc xóa.
 - **Một nút "Thêm khoản"** mở bảng trượt, chọn loại ngay trong form:
   - _Chi tiêu_ — ai trả, chia đều cả nhóm (mặc định) hoặc _Tuỳ chỉnh_ chọn người. Tạm ứng / chi hộ cũng ghi ở đây.
   - _Tài trợ_ — một thành viên tài trợ cho nhóm (không đòi lại), giảm phần cho những người được chọn.
@@ -15,9 +16,9 @@ Không cần tài khoản, không cần đăng nhập, không cần backend. Gia
 - **Không chọn sẵn người trả** — lần nào cũng phải tự chọn cho đỡ nhầm; câu tóm tắt ngay trên nút Lưu ("An trả 1.200.000 ₫ · chia đều cả nhóm (4 người) · mỗi người 300.000 ₫"), thiếu gì báo nấy.
 - **Hoàn tác** — xóa khoản, xóa người hay làm mới đều có nút _Hoàn tác_ trong 5 giây.
 - **Cân đối** — mỗi người một dòng + thanh xanh/đỏ; chạm để xem cách tính (đã trả · phần chịu · được tài trợ · đã chuyển…).
-- **Cần thanh toán** — thuật toán rút gọn công nợ, giảm tối đa số lần chuyển khoản.
+- **Cần thanh toán** — thuật toán rút gọn công nợ, giảm tối đa số lần chuyển khoản; số tiền làm tròn tới nghìn (lẻ dưới 200 ₫ thì bỏ, từ 200 ₫ làm tròn lên) — bật/tắt được, mặc định bật.
 - **Lưu tự động** trên trình duyệt (localStorage) — dữ liệu bản cũ có mục "Tạm ứng" được tự chuyển sang "Chi tiêu".
-- **In / Lưu PDF** — in tờ hóa đơn ở tab Thanh toán.
+- **In / Lưu PDF** — bảng kê A4 riêng cho bản in (không chụp lại giao diện): tổng quan, từng khoản chi tiêu / tài trợ / chuyển tiền, cân đối từng người và ai chuyển cho ai. Chọn "Lưu dưới dạng PDF" trong hộp thoại in; tên file gợi ý theo tên hóa đơn + ngày.
 
 ## 🛠️ Công nghệ
 

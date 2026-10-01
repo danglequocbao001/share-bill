@@ -31,11 +31,15 @@ export const parseAmount = (raw: string): number => {
   return Number.isFinite(value) ? Math.round(value) : 0;
 };
 
+/**
+ * Chữ trên avatar: "Bảo" → "BẢ" · "Quốc Bảo" → "QB" · "Đặng Lê Quốc Bảo" → "QB".
+ * Tên người Việt: hai chữ cuối (tên đệm + tên) dễ nhận ra hơn họ.
+ */
 export const initials = (name: string): string => {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const parts = name.normalize('NFC').trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return '?';
   if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
-  return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
+  return (parts.at(-2)![0]! + parts.at(-1)![0]!).toUpperCase();
 };
 
 const dateFormatter = new Intl.DateTimeFormat('vi-VN', {

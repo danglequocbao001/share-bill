@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
-import { ChevronRight, Plus, Printer, RotateCcw, TriangleAlert } from 'lucide-react';
+import { ChevronRight, Pencil, Plus, Printer, RotateCcw, TriangleAlert } from 'lucide-react';
 import type { Expense } from '@/types';
-import { useBillStore, withUndo } from '@/store/useBillStore';
+import { DEFAULT_TITLE, useBillStore, withUndo } from '@/store/useBillStore';
 import { computeBalances, grandTotal, simplifyDebts } from '@/lib/calc';
 import { formatMoney } from '@/lib/format';
 import { Rule } from '@/components/Rule';
@@ -32,31 +32,39 @@ export default function App() {
   const setTitle = useBillStore((s) => s.setTitle);
   const people = useBillStore((s) => s.people);
   const expenses = useBillStore((s) => s.expenses);
+  const rounding = useBillStore((s) => s.rounding);
   const reset = useBillStore((s) => s.reset);
 
   const [tab, setTab] = useState<Tab>('entries');
   const [sheet, setSheet] = useState<{ entry?: Expense } | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
 
-  const transfersNeeded = simplifyDebts(computeBalances(people, expenses)).length;
+  const transfersNeeded = simplifyDebts(computeBalances(people, expenses), rounding).length;
   const hasData = people.length > 0 || expenses.length > 0;
 
   return (
-    <div className="min-h-dvh w-full px-4 pt-6 pb-28 sm:pt-10">
+    // Khi in chỉ còn bảng kê (PrintReport), giấu toàn bộ giao diện.
+    <div className="min-h-dvh w-full px-4 pt-6 pb-28 sm:pt-10 print:hidden">
       <main className="mx-auto flex w-full max-w-[460px] flex-col gap-4">
-        <header className="no-print flex items-start gap-2">
+        <header className="flex items-start gap-2">
           <div className="min-w-0 flex-1">
             <p className="mono text-[0.62rem] uppercase tracking-[0.35em] text-muted">
               Phiếu chia tiền
             </p>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              aria-label="Tên hóa đơn (chạm để sửa)"
-              spellCheck={false}
-              placeholder="TÊN HÓA ĐƠN"
-              className="mono w-full border-b-[1.5px] border-dashed border-ink/25 bg-transparent py-1 text-xl font-bold uppercase tracking-wide text-ink outline-none placeholder:text-ink/30 focus:border-ink"
-            />
+            <label className="flex items-center gap-2 border-b-[1.5px] border-dashed border-ink/25 focus-within:border-ink">
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                // Xoá trống rồi rời ô thì quay về tên mặc định.
+                onBlur={() => setTitle(title.trim() || DEFAULT_TITLE)}
+                onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+                aria-label="Tên hóa đơn (chạm để sửa)"
+                spellCheck={false}
+                placeholder={DEFAULT_TITLE}
+                className="mono min-w-0 flex-1 bg-transparent py-1 text-xl font-bold uppercase tracking-wide text-ink outline-none placeholder:text-ink/30"
+              />
+              <Pencil size={15} className="shrink-0 text-muted" aria-hidden="true" />
+            </label>
           </div>
           <button
             type="button"
@@ -72,7 +80,7 @@ export default function App() {
         {expenses.length > 0 && (
           <button
             type="button"
-            className="no-print flex items-center gap-3 rounded-2xl bg-paper px-4 py-3 text-left shadow-sm transition-shadow hover:shadow-md"
+            className="flex items-center gap-3 rounded-2xl bg-paper px-4 py-3 text-left shadow-sm transition-shadow hover:shadow-md"
             onClick={() => setTab('settle')}
           >
             <span className="flex-1">
@@ -91,7 +99,7 @@ export default function App() {
           </button>
         )}
 
-        <nav className="no-print sticky top-0 z-10 -mx-4 bg-sand/85 px-4 py-2 backdrop-blur">
+        <nav className="sticky top-0 z-10 -mx-4 bg-sand/85 px-4 py-2 backdrop-blur">
           <div className="seg" role="tablist">
             <button
               type="button"
@@ -140,7 +148,7 @@ export default function App() {
                   <ReceiptItems />
                 </Block>
 
-                <Block label="Cần thanh toán">
+                <Block label={rounding ? 'Cần thanh toán (đã làm tròn)' : 'Cần thanh toán'}>
                   <SettlementSection />
                 </Block>
 
@@ -152,8 +160,9 @@ export default function App() {
 
             <button
               type="button"
-              className="no-print btn btn--ghost btn--block mt-3 bg-paper"
+              className="btn btn--ghost btn--block mt-3 bg-paper"
               onClick={() => window.print()}
+              disabled={expenses.length === 0}
             >
               <Printer size={16} />
               In / Lưu PDF
@@ -161,7 +170,7 @@ export default function App() {
           </>
         )}
 
-        <p className="no-print text-center text-[0.68rem] text-ink/50">
+        <p className="text-center text-[0.68rem] text-ink/50">
           Dữ liệu được lưu tự động trên trình duyệt của bạn — không cần đăng nhập.
         </p>
 
@@ -175,7 +184,7 @@ export default function App() {
       {people.length > 0 && (
         <button
           type="button"
-          className="no-print btn btn--primary fixed inset-x-0 bottom-5 z-40 mx-auto w-fit rounded-full px-6 py-3.5 shadow-lg"
+          className="btn btn--primary fixed inset-x-0 bottom-5 z-40 mx-auto w-fit rounded-full px-6 py-3.5 shadow-lg"
           onClick={() => setSheet({})}
         >
           <Plus size={18} />

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useBillStore } from '@/store/useBillStore';
+import { DEFAULT_TITLE, useBillStore } from '@/store/useBillStore';
 import { formatDateTime } from '@/lib/format';
 
 export function ReceiptHeader() {
@@ -22,7 +22,7 @@ export function ReceiptHeader() {
       </div>
 
       <h1 className="mono w-full break-words text-2xl font-bold uppercase tracking-wide text-ink">
-        {title || 'Hóa đơn chung'}
+        {title || DEFAULT_TITLE}
       </h1>
 
       <div className="mono flex w-full items-center justify-between text-[0.68rem] text-muted">

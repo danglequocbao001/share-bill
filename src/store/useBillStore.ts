@@ -3,12 +3,18 @@ import { persist } from 'zustand/middleware';
 import type { Expense, ExpenseDraft, ID, Person } from '@/types';
 import { useToast } from '@/store/useToast';
 
+export const DEFAULT_TITLE = 'Hóa đơn chung';
+
 interface BillState {
   title: string;
+  /** Luôn xếp theo tên A→Z. */
   people: Person[];
   expenses: Expense[];
+  /** Làm tròn số tiền ở mục "Cần thanh toán" (mặc định bật). Không bị xoá khi làm mới. */
+  rounding: boolean;
 
   setTitle: (title: string) => void;
+  setRounding: (rounding: boolean) => void;
 
   /** Trả về false nếu tên trống hoặc trùng với người đã có. */
   addPerson: (name: string) => boolean;
@@ -29,27 +35,41 @@ const uid = (): ID => crypto.randomUUID();
 const sameName = (a: string, b: string) =>
   a.normalize('NFC').toLocaleLowerCase('vi') === b.normalize('NFC').toLocaleLowerCase('vi');
 
+/** So tên theo thứ tự chữ cái tiếng Việt (a ă â … d đ …). */
+const collator = new Intl.Collator('vi');
+const byName = (a: Person, b: Person) => collator.compare(a.name, b.name);
+
+/** "  minh   anh " → "Minh Anh": bỏ khoảng trắng thừa, viết hoa chữ cái đầu mỗi từ. */
+const cleanName = (raw: string) =>
+  raw
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toLocaleUpperCase('vi') + word.slice(1))
+    .join(' ');
+
 export const useBillStore = create<BillState>()(
   persist(
     (set, get) => ({
-      title: 'HÓA ĐƠN CHUNG',
+      title: DEFAULT_TITLE,
       people: [],
       expenses: [],
+      rounding: true,
 
       setTitle: (title) => set({ title }),
+      setRounding: (rounding) => set({ rounding }),
 
-      addPerson: (name) => {
-        const trimmed = name.trim();
-        if (!trimmed || get().people.some((p) => sameName(p.name, trimmed))) return false;
-        set((state) => ({ people: [...state.people, { id: uid(), name: trimmed }] }));
+      addPerson: (raw) => {
+        const name = cleanName(raw);
+        if (!name || get().people.some((p) => sameName(p.name, name))) return false;
+        set((state) => ({ people: [...state.people, { id: uid(), name }].sort(byName) }));
         return true;
       },
 
-      renamePerson: (id, name) => {
-        const trimmed = name.trim();
-        if (!trimmed || get().people.some((p) => p.id !== id && sameName(p.name, trimmed))) return false;
+      renamePerson: (id, raw) => {
+        const name = cleanName(raw);
+        if (!name || get().people.some((p) => p.id !== id && sameName(p.name, name))) return false;
         set((state) => ({
-          people: state.people.map((p) => (p.id === id ? { ...p, name: trimmed } : p)),
+          people: state.people.map((p) => (p.id === id ? { ...p, name } : p)).sort(byName),
         }));
         return true;
       },
@@ -98,16 +118,17 @@ export const useBillStore = create<BillState>()(
         });
       },
 
-      reset: () => set({ title: 'HÓA ĐƠN CHUNG', people: [], expenses: [] }),
+      reset: () => set({ title: DEFAULT_TITLE, people: [], expenses: [] }),
     }),
     {
       name: 'share-bill-v1',
-      version: 1,
-      // v0 có mục "Tạm ứng" riêng — tính y hệt khoản chi nên gộp vào.
+      version: 2,
+      // v0 có mục "Tạm ứng" riêng — tính y hệt khoản chi nên gộp vào. v1 lưu người theo thứ tự thêm.
       migrate: (persisted) => {
         const state = persisted as BillState;
         return {
           ...state,
+          people: [...state.people].sort(byName),
           expenses: state.expenses.map((e) =>
             (e.kind as string) === 'prepayment' ? { ...e, kind: 'expense' as const } : e,
           ),
